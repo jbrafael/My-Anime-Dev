@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Anime Dev - Lista</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 p-8 font-sans">
+
+    <!-- Sistema de Toasts -->
+    {% if messages %}
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3">
+        {% for message in messages %}
+        <div
+            class="toast bg-gray-800 border-l-4 {% if message.tags == 'success' %}border-green-500 text-green-400{% elif message.tags == 'error' %}border-red-500 text-red-400{% else %}border-blue-500 text-blue-400{% endif %} p-4 rounded shadow-2xl transition-opacity duration-500">
+            <p class="font-bold">{{ message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500); // Remove do DOM após a transição
+            });
+        }, 3000); // 3 segundos visível
+    </script>
+    {% endif %}
+
+    <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+            <h1 class="text-3xl font-black text-indigo-400">My Anime Dev</h1>
+            <a href="{% url 'buscar_api' %}"
+                class="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-lg font-bold transition">
+                + Buscar Anime
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for anime in animes %}
+            <div
+                class="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg flex flex-col group hover:border-indigo-500 transition-all duration-300">
+                <img src="{{ anime.imagem_url }}" alt="{{ anime.titulo }}"
+                    class="w-full h-56 object-cover rounded-lg mb-3">
+                <h2 class="font-bold text-lg truncate mb-1" title="{{ anime.titulo }}">{{ anime.titulo }}</h2>
+                <div class="mb-4 text-sm text-gray-400 flex-grow">
+                    <p>Status: <span class="text-white font-semibold">{{ anime.get_status_display }}</span></p>
+                    <p>Nota: <span class="text-yellow-400 font-bold">⭐ {{ anime.nota }}</span></p>
+                </div>
+                <div class="flex gap-2 mt-auto">
+                    <a href="{% url 'editar_anime' anime.id %}"
+                        class="bg-gray-700 hover:bg-gray-600 w-1/2 text-center py-2 rounded-lg text-sm font-bold transition">
+                        Editar
+                    </a>
+                    <form action="{% url 'excluir_anime' anime.id %}" method="POST" class="w-1/2"
+                        onsubmit="return confirm('Tem certeza que deseja excluir?');">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-red-600 hover:bg-red-500 w-full py-2 rounded-lg text-sm font-bold transition">
+                            Excluir
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-10 text-gray-500">
+                <p>Nenhum anime na sua lista ainda. Clique em "+ Buscar Anime" para começar!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>

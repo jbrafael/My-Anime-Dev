@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Editar - My Anime Dev</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 p-8 font-sans flex items-center justify-center min-h-screen">
+
+    <div class="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-2xl w-full max-w-md">
+
+        <h1 class="text-2xl font-black text-indigo-400 mb-6 text-center">
+            Atualizar Anime
+        </h1>
+
+        <div class="flex gap-4 mb-6 items-center bg-gray-900 p-3 rounded-lg border border-gray-700">
+            <img src="{{ anime.imagem_url }}" alt="{{ anime.titulo }}" class="w-16 h-20 object-cover rounded shadow">
+
+            <h2 class="font-bold text-lg">
+                {{ anime.titulo }}
+            </h2>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-400 mb-2">
+                    Status
+                </label>
+
+                <select name="status"
+                    class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500">
+
+                    {% if anime.status %}
+
+                    <option value="{{ anime.status }}" selected>
+                        {{ anime.get_status_display }}
+                    </option>
+
+                    {% if anime.status == "WATCHING" %}
+                    <option value="COMPLETED">
+                        Concluído
+                    </option>
+                    {% else %}
+                    <option value="WATCHING">
+                        Assistindo
+                    </option>
+                    {% endif %}
+
+                    {% else %}
+
+                    <option value="WATCHING">
+                        Assistindo
+                    </option>
+
+                    <option value="COMPLETED">
+                        Concluído
+                    </option>
+
+                    {% endif %}
+
+                </select>
+            </div>
+
+            <div class="mb-8">
+                <label class="block text-sm font-semibold text-gray-400 mb-2">
+                    Nota (0 a 10)
+                </label>
+
+                <input type="number" name="nota" min="0" max="10" value="{{ anime.nota }}"
+                    class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <div class="flex gap-3">
+
+                <a href="{% url 'lista_animes' %}"
+                    class="w-1/2 text-center bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold transition">
+                    Cancelar
+                </a>
+
+                <button type="submit"
+                    class="w-1/2 bg-indigo-600 hover:bg-indigo-500 py-3 rounded-lg font-bold transition">
+                    Salvar
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</body>
+
+</html>

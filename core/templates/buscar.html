@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Buscar - My Anime Dev</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 p-8 font-sans">
+    {% csrf_token %}
+
+    <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+            <h1 class="text-3xl font-black text-indigo-400">Buscar Anime (Live Search)</h1>
+            <a href="{% url 'lista_animes' %}" class="text-gray-400 hover:text-white transition font-bold">← Voltar para
+                Lista</a>
+        </div>
+
+        <div class="flex gap-2 mb-10">
+            <input type="text" id="search-input" value="{{ query }}" placeholder="Comece a digitar o nome do anime..."
+                class="flex-grow bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 shadow-inner">
+        </div>
+
+        <div id="resultados-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for anime in resultados %}
+            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg flex flex-col">
+                <img src="{{ anime.images.jpg.image_url }}" alt="{{ anime.title }}"
+                    class="w-full h-56 object-cover rounded-lg mb-3">
+                <h2 class="font-bold text-lg truncate mb-4" title="{{ anime.title }}">{{ anime.title }}</h2>
+
+                <form action="{% url 'adicionar_anime' %}" method="POST" class="mt-auto">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    <input type="hidden" name="mal_id" value="{{ anime.mal_id }}">
+                    <input type="hidden" name="titulo" value="{{ anime.title }}">
+                    <input type="hidden" name="imagem_url" value="{{ anime.images.jpg.image_url }}">
+                    <button type="submit"
+                        class="w-full bg-green-600 hover:bg-green-500 py-2 rounded-lg text-sm font-bold transition">
+                        + Adicionar à Lista
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const inputBusca = document.getElementById('search-input');
+        const gridResultados = document.getElementById('resultados-grid');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let timeout = null;
+
+        inputBusca.addEventListener('input', function () {
+            clearTimeout(timeout);
+            const query = this.value.trim();
+
+            if (query.length < 3) {
+                if (query.length === 0) gridResultados.innerHTML = '';
+                return;
+            }
+
+            timeout = setTimeout(() => {
+                gridResultados.innerHTML = '<p class="col-span-full text-center text-indigo-400 font-bold">Buscando na API...</p>';
+
+                fetch(`https://kitsu.io/api/edge/anime?filter[text]=${query}&page[limit]=8`, {
+                    headers: { 'Accept': 'application/vnd.api+json' }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        gridResultados.innerHTML = '';
+                        if (!data.data || data.data.length === 0) {
+                            gridResultados.innerHTML = `<p class="col-span-full text-center text-gray-500">Nenhum resultado para "${query}".</p>`;
+                            return;
+                        }
+
+                        data.data.forEach(item => {
+                            const attr = item.attributes;
+                            const titulo = attr.canonicalTitle || 'Sem título';
+                            const imagem = attr.posterImage ? attr.posterImage.small : '';
+                            const id = item.id;
+
+                            const card = `
+                            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg flex flex-col">
+                                <img src="${imagem}" alt="${titulo}" class="w-full h-56 object-cover rounded-lg mb-3">
+                                <h2 class="font-bold text-lg truncate mb-4" title="${titulo}">${titulo}</h2>
+                                <form action="/adicionar/" method="POST" class="mt-auto">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                                    <input type="hidden" name="mal_id" value="${id}">
+                                    <input type="hidden" name="titulo" value="${titulo}">
+                                    <input type="hidden" name="imagem_url" value="${imagem}">
+                                    <button type="submit" class="w-full bg-green-600 hover:bg-green-500 py-2 rounded-lg text-sm font-bold transition">
+                                        + Adicionar à Lista
+                                    </button>
+                                </form>
+                            </div>
+                        `;
+                            gridResultados.innerHTML += card;
+                        });
+                    })
+                    .catch(() => {
+                        gridResultados.innerHTML = '<p class="col-span-full text-center text-red-500 font-bold">Falha ao se conectar com a API Kitsu.</p>';
+                    });
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>
