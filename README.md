@@ -20,19 +20,23 @@
 2. Crie e ative o ambiente virtual:
 
    python -m venv venv
+   
    source venv/bin/activate
 
    Instale as dependências:
 
 pip install -r requirements.txt
+
 Execute as migrações do banco de dados:
 
 
 python manage.py migrate
+
 Inicie o servidor de desenvolvimento:
 
 
 python manage.py runserver
+
 Acesse http://127.0.0.1:8000/ no seu navegador.
 
 Desenvolvido por Jobson Rafael para a disciplina de Desenvolvimento web II
